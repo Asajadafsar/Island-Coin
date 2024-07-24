@@ -1,8 +1,8 @@
 from django.db import models
 
 class User(models.Model):
-    user_id = models.AutoField(primary_key=True)  # کلید اصلی خودکار
-    username = models.CharField(max_length=255, unique=True)  # نام کاربری منحصر به فرد
+    user_id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=255, unique=True)
     level = models.IntegerField(default=1)
     friends = models.ManyToManyField('self', blank=True)
     join = models.BooleanField(default=False)
@@ -12,9 +12,9 @@ class User(models.Model):
 
 class Inventory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventories', db_column='user_id')
-    tank = models.BooleanField(default=False)
-    fullcharge = models.BooleanField(default=False)
-    rocket = models.BooleanField(default=False)
+    tank = models.IntegerField(default=10000)
+    fullcharge = models.IntegerField(default=3) 
+    rocket = models.IntegerField(default=3)  
 
     def __str__(self):
         return f"Inventory for {self.user.username}"
@@ -27,3 +27,8 @@ class Reward(models.Model):
 
     def __str__(self):
         return f"Rewards for {self.user.username}"
+
+
+
+
+
