@@ -13,8 +13,11 @@ class User(models.Model):
 class Inventory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventories', db_column='user_id')
     tank = models.IntegerField(default=10000)
-    fullcharge = models.IntegerField(default=3) 
-    rocket = models.IntegerField(default=3)  
+    fullcharge = models.IntegerField(default=3)
+    rocket = models.IntegerField(default=3)
+    rocket_used = models.IntegerField(default=0)
+    rocket_multiplier = models.IntegerField(default=2)
+    rocket_active = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Inventory for {self.user.username}"
@@ -27,8 +30,3 @@ class Reward(models.Model):
 
     def __str__(self):
         return f"Rewards for {self.user.username}"
-
-
-
-
-

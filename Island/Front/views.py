@@ -4,10 +4,10 @@ from django.conf import settings
 import telegram
 import json
 from .models import User, Reward, Inventory
+import threading
 
 class TelegramWebhook(View):
     def post(self, request, *args, **kwargs):
-        # Parse the incoming update
         try:
             data = json.loads(request.body.decode('UTF-8'))
         except json.JSONDecodeError:
@@ -16,30 +16,25 @@ class TelegramWebhook(View):
         bot = telegram.Bot(token=settings.TELEGRAM_TOKEN)
         update = telegram.Update.de_json(data, bot)
         
-        # Check if there is a message
         if update.message:
             user_id = update.message.from_user.id
             username = update.message.from_user.username
             
-            # Save or update user information
             user, created = User.objects.update_or_create(
                 user_id=user_id,
                 defaults={'username': username}
             )
             
-            # Create or update Reward entry
             reward, reward_created = Reward.objects.get_or_create(
                 user=user,
-                defaults={'coins': 0}  # Default value for coins
+                defaults={'coins': 0}
             )
             
-            # Create or update Inventory entry if not already present
             inventory, inventory_created = Inventory.objects.get_or_create(
                 user=user,
-                defaults={'tank': 10000}  # Default value for tank
+                defaults={'tank': 10000}
             )
             
-            # Respond to Telegram
             return JsonResponse({'status': 'ok'})
         
         return JsonResponse({'status': 'no message'})
@@ -52,23 +47,20 @@ class UserInfoView(View):
         except User.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
         
-        # Retrieve or create Reward
         reward, created = Reward.objects.get_or_create(
             user=user,
-            defaults={'coins': 0}  # Default value for coins
+            defaults={'coins': 0}
         )
         
-        # Retrieve or create Inventory
         inventory, created = Inventory.objects.get_or_create(
             user=user,
-            defaults={'tank': 10000}  # Default value for tank
+            defaults={'tank': 10000}
         )
         
-        # Prepare user info
         user_info = {
             'level': user.level,
             'coins': reward.coins,
-            'tank': inventory.tank  # No need to set to 10000 if default is applied
+            'tank': inventory.tank
         }
         
         return JsonResponse(user_info)
@@ -80,32 +72,49 @@ class IncreaseCoinsView(View):
         except User.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
         
-        # Retrieve or create the reward for the user
         reward, created = Reward.objects.get_or_create(
             user=user,
             defaults={'coins': 0}
         )
         
-        # Retrieve or create the inventory for the user
         inventory, created = Inventory.objects.get_or_create(
             user=user,
             defaults={'tank': 10000}
         )
         
-        # Check if there is enough tank resource
         if inventory.tank <= 0:
             return JsonResponse({'status': 'error', 'message': 'Tank is empty'}, status=400)
         
-        # Increase coins by 1 and decrease tank by 1
-        reward.coins += 1
+        # Check if rocket is active and determine coins increment
+        if inventory.rocket_active:
+            coins_increment = self.get_coins_increment(user.level)
+        else:
+            coins_increment = 1
+        
+        reward.coins += coins_increment
         inventory.tank -= 1
         
-        # Save updated reward and inventory
         reward.save()
         inventory.save()
         
-        return JsonResponse({'status': 'success', 'coins': reward.coins, 'tank': inventory.tank})
+        return JsonResponse({'status': 'success', 'coins': reward.coins, 'tank': inventory.tank, 'rocket_active': inventory.rocket_active, 'rocket_multiplier': inventory.rocket_multiplier if inventory.rocket_active else 1})
     
+    def get_coins_increment(self, level):
+        if level == 1:
+            return 2
+        elif level == 2:
+            return 5
+        elif level == 3:
+            return 10
+        elif level == 4:
+            return 15
+        elif level == 5:
+            return 50
+        elif level == 6:
+            return 100
+        else:
+            return 1
+
     
 class RefillTankView(View):
     def post(self, request, user_id, *args, **kwargs):
@@ -119,11 +128,9 @@ class RefillTankView(View):
         except Inventory.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Inventory not found'}, status=404)
         
-        # Check if fullcharge is available
         if inventory.fullcharge <= 0:
             return JsonResponse({'status': 'error', 'message': 'Cannot refill tank. Fullcharge is empty'}, status=400)
         
-        # Refill tank
         max_tank_capacity = 10000
         if inventory.tank < max_tank_capacity:
             inventory.tank = max_tank_capacity
@@ -132,3 +139,31 @@ class RefillTankView(View):
             return JsonResponse({'status': 'success', 'message': 'Tank refilled', 'tank': inventory.tank, 'fullcharge': inventory.fullcharge})
         
         return JsonResponse({'status': 'success', 'message': 'Tank is already full', 'tank': inventory.tank})
+
+class ActivateRocketView(View):
+    def post(self, request, user_id, *args, **kwargs):
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+        
+        try:
+            inventory = Inventory.objects.get(user=user)
+        except Inventory.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Inventory not found'}, status=404)
+        
+        if inventory.rocket <= 0:
+            return JsonResponse({'status': 'error', 'message': 'No rockets available'}, status=400)
+        
+        inventory.rocket_active = True
+        inventory.rocket -= 1
+        inventory.save()
+
+        def deactivate_rocket():
+            inventory.rocket_active = False
+            inventory.save()
+
+        timer = threading.Timer(60, deactivate_rocket)  # Timer set to 60 seconds
+        timer.start()
+        
+        return JsonResponse({'status': 'success', 'message': 'Rocket activated', 'rocket': inventory.rocket, 'rocket_active': inventory.rocket_active})
