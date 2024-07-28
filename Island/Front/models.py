@@ -6,9 +6,16 @@ class User(models.Model):
     level = models.IntegerField(default=1)
     friends = models.ManyToManyField('self', blank=True)
     join = models.BooleanField(default=False)
+    invite_link = models.URLField(blank=True, null=True)  
+    invited_users = models.ManyToManyField('self', related_name='invited_by', symmetrical=False, blank=True)  
 
     def __str__(self):
         return self.username
+
+
+
+
+
 
 class Inventory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventories', db_column='user_id')
@@ -25,8 +32,10 @@ class Inventory(models.Model):
 class Reward(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rewards', db_column='user_id')
     coins = models.IntegerField(default=0)
-    luckywheel = models.BooleanField(default=False)
-    check_daily_reward = models.BooleanField(default=False)
+    subscribed_channel = models.BooleanField(default=False)
+    played_hamster_kombat = models.BooleanField(default=False)
+    watched_av_video = models.BooleanField(default=False)
+    invited_friends = models.IntegerField(default=0)  
 
     def __str__(self):
         return f"Rewards for {self.user.username}"
