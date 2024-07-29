@@ -53,8 +53,6 @@ class TelegramWebhook(View):
         return JsonResponse({'status': 'no message'})
 
 
-
-
 class UserInfoView(View):
     def get(self, request, user_id, *args, **kwargs):
         try:
@@ -79,6 +77,7 @@ class UserInfoView(View):
         }
         
         return JsonResponse(user_info)
+    
     
 class IncreaseCoinsView(View):
     def post(self, request, user_id, *args, **kwargs):
@@ -154,6 +153,7 @@ class RefillTankView(View):
             return JsonResponse({'status': 'success', 'message': 'Tank refilled', 'tank': inventory.tank, 'fullcharge': inventory.fullcharge})
         
         return JsonResponse({'status': 'success', 'message': 'Tank is already full', 'tank': inventory.tank})
+
 
 class ActivateRocketView(View):
     def post(self, request, user_id, *args, **kwargs):
@@ -247,8 +247,6 @@ class SubscribeAVChannelView(View):
         return True
 
 
-
-
 class PlayHamsterKombatView(View):
     def post(self, request, user_id, *args, **kwargs):
         try:
@@ -281,8 +279,6 @@ class PlayHamsterKombatView(View):
         return True
 
 
-
-
 class WatchAVVideoView(View):
     def post(self, request, user_id, *args, **kwargs):
         try:
@@ -313,7 +309,6 @@ class WatchAVVideoView(View):
         # اینجا باید چک کنید که آیا کاربر ویدیو را تماشا کرده است یا خیر
         # این چک ممکن است با استفاده از یوتیوب API یا روش‌های دیگر انجام شود
         return True
-
 
 
 class GenerateInviteLinkView(View):
@@ -359,7 +354,6 @@ class RegisterInviteView(View):
             reward.save()
 
         return JsonResponse({'status': 'success', 'coins': reward.coins, 'invited_friends': reward.invited_friends})
-
 
 
 class InvitedFriendsListView(View):

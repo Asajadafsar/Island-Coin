@@ -13,10 +13,6 @@ class User(models.Model):
         return self.username
 
 
-
-
-
-
 class Inventory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventories', db_column='user_id')
     tank = models.IntegerField(default=10000)
@@ -28,6 +24,7 @@ class Inventory(models.Model):
 
     def __str__(self):
         return f"Inventory for {self.user.username}"
+
 
 class Reward(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rewards', db_column='user_id')
