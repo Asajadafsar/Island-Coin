@@ -178,7 +178,7 @@ class ActivateRocketView(View):
             inventory.rocket_active = False
             inventory.save()
 
-        timer = threading.Timer(60, deactivate_rocket)  # Timer set to 60 seconds
+        timer = threading.Timer(24 * 60 * 60, deactivate_rocket)  # Timer set to 24 hours
         timer.start()
         
         return JsonResponse({'status': 'success', 'message': 'Rocket activated', 'rocket': inventory.rocket, 'rocket_active': inventory.rocket_active})

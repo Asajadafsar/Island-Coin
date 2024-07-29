@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Front',
+    
+    'django_crontab',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -102,6 +105,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CRONJOBS = [
+    ('0 0 * * *', 'Island.tasks.reset_rocket_inventory'),
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
