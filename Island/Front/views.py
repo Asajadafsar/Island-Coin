@@ -375,3 +375,25 @@ class RankingView(View):
             for user in users
         ]
         return JsonResponse({'status': 'success', 'ranking': ranking})
+    
+    
+from django.http import JsonResponse
+from .tasks import increase_user_coins
+from django.views import View
+
+class IncreaseUserCoinsView(View):
+    def patch(self, request, user_id, *args, **kwargs):
+        increase_user_coins.delay(user_id)
+        return JsonResponse({'status': 'success', 'message': 'Task started'})
+    
+    
+class GetUserCoinsView(View):
+    def get(self, request, user_id, *args, **kwargs):
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+        
+        reward, created = Reward.objects.get_or_create(user=user, defaults={'coins': 0})
+        
+        return JsonResponse({'status': 'success', 'coins': reward.coins})

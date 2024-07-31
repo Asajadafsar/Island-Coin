@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     
     'django_crontab',
     'django_apscheduler',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,28 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 APPEND_SLASH = False
 
 TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN_HERE'
+ASGI_APPLICATION = 'Island.asgi.application'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Island/settings.py
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+import os
+# Island/settings.py
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+

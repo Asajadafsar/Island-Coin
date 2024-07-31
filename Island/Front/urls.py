@@ -1,9 +1,8 @@
 from django.urls import path
-from .views import TelegramWebhook, UserInfoView, IncreaseCoinsView, RefillTankView, ActivateRocketView
-from .views import GetDailyRewardView
-from .views import SubscribeAVChannelView, PlayHamsterKombatView, WatchAVVideoView
-from .views import GenerateInviteLinkView, RegisterInviteView, InvitedFriendsListView
-from .views import RankingView
+from .views import TelegramWebhook, UserInfoView, IncreaseCoinsView, RefillTankView, ActivateRocketView,\
+    GetDailyRewardView, SubscribeAVChannelView, PlayHamsterKombatView, WatchAVVideoView,\
+    GenerateInviteLinkView, RegisterInviteView, InvitedFriendsListView, RankingView, IncreaseUserCoinsView, \
+    GetUserCoinsView
 
 
 
@@ -21,4 +20,8 @@ urlpatterns = [
     path('register_invite/', RegisterInviteView.as_view(), name='register_invite'),
     path('ranking/<int:level>/', RankingView.as_view(), name='ranking'),
     path('invited_friends_list/<int:user_id>/', InvitedFriendsListView.as_view(), name='invited_friends_list'),
+    
+     path('increase_user_coins/<int:user_id>/', IncreaseUserCoinsView.as_view(), name='increase_user_coins'),
+    path('get_user_coins/<int:user_id>/', GetUserCoinsView.as_view(), name='get_user_coins'),
 ]
+
